@@ -26,6 +26,8 @@ public class AccountServicesImpl implements AccountServices{
 		user.setPassword(hashedPassword);
 		return userDAO.save(user);
 	}
+	
+	
  
 	@Override
 	public User1 getAccountDetails(String emailId,String password) throws UserDetailsNotFoundException, IncorrectPasswordException {
