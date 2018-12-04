@@ -1,18 +1,22 @@
 package com.cg.project.controllers;
- 
-import org.hibernate.mapping.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
- 
+
+import com.cg.project.beans.Photos;
 import com.cg.project.beans.User1;
 import com.cg.project.exceptions.IncorrectPasswordException;
 import com.cg.project.exceptions.UserDetailsNotFoundException;
@@ -46,5 +50,16 @@ public class AccountServicesController {
 		}
 		return new ResponseEntity<>(model, HttpStatus.OK);			
 	}
- 
+	private static final Logger logger = LoggerFactory.getLogger(AccountServicesController.class);
+	@PostMapping("/uploadFile")
+		public String uploadMultipartFile(@RequestParam("photo") MultipartFile photo) {
+	    	try {
+		    	Photos photos = new Photos(photo.getOriginalFilename(), photo.getContentType(), photo.getBytes());
+		    	accountServices.storePhoto(photo);
+		    	return "File uploaded successfully! -> filename = " + photo.getOriginalFilename();
+			} catch (	Exception e) {
+				return "FAIL! Maybe You had uploaded the file before or the file's size > 500KB";
+			}    
+	    
+	}
 }
