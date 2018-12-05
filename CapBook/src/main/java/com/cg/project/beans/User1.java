@@ -17,6 +17,7 @@ public class User1 {
 	private String gender;
 	
 	
+	
 	public User1() {
 		super();
 	}
