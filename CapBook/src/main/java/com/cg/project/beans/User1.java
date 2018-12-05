@@ -16,7 +16,6 @@ public class User1 {
 	private Date dateOfBirth;
 	private String gender;
 	
-	
 	public User1() {
 		super();
 	}
