@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class User1 {
@@ -15,6 +16,11 @@ public class User1 {
 	private int age;
 	private Date dateOfBirth;
 	private String gender;
+	
+	@OneToMany(mappedBy="user")
+	private Posts posts;
+	@OneToMany(mappedBy="user")
+	private Status status;
 		
 	public User1() {
 		super();
@@ -72,6 +78,19 @@ public class User1 {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
+	public Posts getPosts() {
+		return posts;
+	}
+	public void setPosts(Posts posts) {
+		this.posts = posts;
+	}
+	public Status getStatus() {
+		return status;
+	}
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+	
 	
 	
 }
