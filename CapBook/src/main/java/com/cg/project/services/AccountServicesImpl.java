@@ -35,10 +35,15 @@ public class AccountServicesImpl implements AccountServices{
 		String saltedPassword = SALT + password;
 		System.out.println(user.toString());
 		String hashedPassword = generateHash(saltedPassword);
-		if (hashedPassword.equals(user.getPassword()))
+		if (hashedPassword.equals(user.getPassword())) {
+			System.out.println(user.toString()+"1");
 			return user;
-		else
+		}			
+		else {
+			System.out.println(user.toString()+" 2");
 			throw new IncorrectPasswordException("Incorrect Password");
+		}
+			
 	}
  
 	public static String generateHash(String input) {
