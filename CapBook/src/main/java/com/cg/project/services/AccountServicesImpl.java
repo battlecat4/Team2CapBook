@@ -11,13 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cg.project.beans.Message;
 import com.cg.project.beans.Photos;
 import com.cg.project.beans.Posts;
 import com.cg.project.beans.Relationship;
 import com.cg.project.beans.Status;
 import com.cg.project.beans.User1;
-import com.cg.project.daoservices.MessageDAO;
 import com.cg.project.daoservices.PhotosDAO;
 import com.cg.project.daoservices.RelationshipDAO;
 import com.cg.project.daoservices.UserDAO;
@@ -35,8 +33,8 @@ public class AccountServicesImpl implements AccountServices{
 	private PhotosDAO photosDAO;
 	@Autowired
 	private RelationshipDAO relationshipDAO;
-	@Autowired
-	private MessageDAO messageDAO;
+//	@Autowired
+//	private MessageDAO messageDAO;
 	public static final String SALT = "my-salt-text";
 
 	@Override
@@ -130,7 +128,7 @@ public class AccountServicesImpl implements AccountServices{
 	@Override
 	public User1 addStatus(String userId,String status) throws UserDetailsNotFoundException{
 		User1 user= userDAO.findById(userId).orElseThrow(()->(new UserDetailsNotFoundException("No such emailId found")));
-		user.setStatus(new Status(status, user));
+		//user.setStatus(new Status(status, user));
 		userDAO.save(user);
 		return user;
 	}
@@ -139,28 +137,28 @@ public class AccountServicesImpl implements AccountServices{
 	public User1 addPost(String postById,String postOnId, String post) throws UserDetailsNotFoundException {
 		User1 user1= userDAO.findById(postById).orElseThrow(()->(new UserDetailsNotFoundException("No such emailId found")));
 		User1 user2=userDAO.findById(postOnId).orElseThrow(()->(new UserDetailsNotFoundException("No such emailId found")));
-		user2.setPosts(new Posts(postById, post, user2));
+		//user2.setPosts(new Posts(postById, post, user2));
 		return user1;
 	}
  
  
  
-	@Override
-	public List<Message> getDialog(User1 user, User1 interlocutor) {
-		return messageDAO.findByRecipientOrSenderOrderByPostedDesc(user, interlocutor);
-	}
-
- 
-	@Override
-	public List<Message> getLastMessages(User1 user) {
-		return messageDAO.findLastMessagesByUser(user);
-	}
- 
- 
- 
-	@Override
-	public Message send(Message message) {
-		return messageDAO.save(message);
-	}
+//	@Override
+//	public List<Message> getDialog(User1 user, User1 interlocutor) {
+//		return messageDAO.findByRecipientOrSenderOrderByPostedDesc(user, interlocutor);
+//	}
+//
+// 
+//	@Override
+//	public List<Message> getLastMessages(User1 user) {
+//		return messageDAO.findLastMessagesByUser(user);
+//	}
+// 
+// 
+// 
+//	@Override
+//	public Message send(Message message) {
+//		return messageDAO.save(message);
+//	}
 	
 }

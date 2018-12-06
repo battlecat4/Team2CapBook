@@ -1,9 +1,13 @@
 package com.cg.project.beans;
  
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.ManyToOne;
- 
+ @Entity
 public class Status {
  
+	 @Id
+	 private int statusId;
 	private String text;
  
 	@ManyToOne

@@ -1,8 +1,10 @@
 package com.cg.project.beans;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -17,10 +19,10 @@ public class User1 {
 	private Date dateOfBirth;
 	private String gender;
 	
-	@OneToMany(mappedBy="user")
-	private Posts posts;
-	@OneToMany(mappedBy="user")
-	private Status status;
+//	@OneToMany(mappedBy="user",targetEntity=Posts.class, fetch=FetchType.EAGER)
+//	private List<Posts> posts;
+//	@OneToMany(mappedBy="user",targetEntity=Status.class, fetch=FetchType.EAGER)
+//	private List<Status> status;
 		
 	public User1() {
 		super();
@@ -78,18 +80,18 @@ public class User1 {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
-	public Posts getPosts() {
-		return posts;
-	}
-	public void setPosts(Posts posts) {
-		this.posts = posts;
-	}
-	public Status getStatus() {
-		return status;
-	}
-	public void setStatus(Status status) {
-		this.status = status;
-	}
+//	public List<Posts> getPosts() {
+//		return posts;
+//	}
+//	public void setPosts(List<Posts> posts) {
+//		this.posts = posts;
+//	}
+//	public List<Status> getStatus() {
+//		return status;
+//	}
+//	public void setStatus(List<Status> status) {
+//		this.status = status;
+//	}
 	
 	
 	

@@ -14,8 +14,10 @@ public class Albums {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private int albumId;
 	private String albumName;
+	
 	@OneToMany(mappedBy="album")
 	private List<Photos> photos;
+	
 	public Albums() {
 		super();
 	}

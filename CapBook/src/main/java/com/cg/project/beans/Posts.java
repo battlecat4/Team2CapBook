@@ -1,12 +1,14 @@
 package com.cg.project.beans;
  
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
- 
+ @Entity
 public class Posts {
 	@Id
 	private String friendId;
 	private String text;
+	
 	@ManyToOne
 	private User1 user;
  
