@@ -10,16 +10,15 @@ public class Status {
 	 private int statusId;
 	private String text;
  
-	@ManyToOne
-	private User1 user;
+	//@ManyToOne
+	//private User1 user;
  
 	public Status() {
 		super();
 	}
-	public Status(String text, User1 user) {
+	public Status(String text) {
 		super();
 		this.text = text;
-		this.user = user;
 	}
  
  
@@ -31,13 +30,13 @@ public class Status {
 		this.text = text;
 	}
  
-	public User1 getUser() {
+	/*public User1 getUser() {
 		return user;
 	}
  
 	public void setUser(User1 user) {
 		this.user = user;
-	}
+	}*/
  
  
 }

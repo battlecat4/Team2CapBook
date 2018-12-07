@@ -5,12 +5,18 @@ import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
 
 @Entity
 public class User1 {
+		
 	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private int userID; 
 	private String emailId;
 	private String password;
 	private String firstName;
@@ -27,17 +33,20 @@ public class User1 {
 	public User1() {
 		super();
 	}
-	public User1(String emailId, String password, String firstName, String lastName, int age, Date dateOfBirth,
-			String gender) {
-		super();
-		this.emailId = emailId;
-		this.password = password;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.age = age;
-		this.dateOfBirth = dateOfBirth;
-		this.gender = gender;
-	}
+	
+	public User1(int userID, String emailId, String password, String firstName, String lastName, int age, Date dateOfBirth,
+		String gender) {
+	super();
+	this.userID = userID;
+	this.emailId = emailId;
+	this.password = password;
+	this.firstName = firstName;
+	this.lastName = lastName;
+	this.age = age;
+	this.dateOfBirth = dateOfBirth;
+	this.gender = gender;
+}
+
 	public String getEmailId() {
 		return emailId;
 	}
@@ -80,6 +89,20 @@ public class User1 {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
+	public int getUserID() {
+		return userID;
+	}
+	public void setUserID(int userID) {
+		this.userID = userID;
+	}
+
+	@Override
+	public String toString() {
+		return "User1 [userID=" + userID + ", emailId=" + emailId + ", password=" + password + ", firstName="
+				+ firstName + ", lastName=" + lastName + ", age=" + age + ", dateOfBirth=" + dateOfBirth + ", gender="
+				+ gender + "]";
+	}
+	
 //	public List<Posts> getPosts() {
 //		return posts;
 //	}

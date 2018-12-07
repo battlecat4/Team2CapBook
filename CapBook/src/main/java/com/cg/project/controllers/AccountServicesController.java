@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 
 import com.cg.project.beans.Photos;
+import com.cg.project.beans.Relationship;
 import com.cg.project.beans.User1;
 import com.cg.project.exceptions.IncorrectPasswordException;
 import com.cg.project.exceptions.UserDetailsNotFoundException;
@@ -54,15 +55,32 @@ public class AccountServicesController {
 		try {
 			user = accountServices.getAccountDetails(emailId,password);
 			String sessionId=RequestContextHolder.getRequestAttributes().getSessionId();
-			model.put("user", user);			
+			model.put("user", user);
+			model.put("userId", user.getUserID());
 			model.put("sessionId", sessionId);
 		} catch (IncorrectPasswordException|UserDetailsNotFoundException e) {
-			System.out.println("error");
-			System.out.println(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(model, HttpStatus.OK);			
 	}
+	
+	
+	@RequestMapping(method=RequestMethod.GET,value="/getDetails",produces=MediaType.APPLICATION_JSON_VALUE)
+			//headers="Accept=application/json")
+	public ResponseEntity<User1> getDetails(@RequestParam("userId") int userId){
+		System.out.println(userId);
+		User1 user=null;
+		try {
+			user = accountServices.getAccountDetailsUserId(userId);
+		} catch (UserDetailsNotFoundException | IncorrectPasswordException e) {
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(user, HttpStatus.OK);	
+		
+	}
+	
+	
+	
 	
 	private static final Logger logger = LoggerFactory.getLogger(AccountServicesController.class);
 	@PostMapping("/uploadFile")
@@ -76,16 +94,39 @@ public class AccountServicesController {
 		}   
 	}
 
-	@RequestMapping(value="/changePassword",method = RequestMethod.POST)
-	public ResponseEntity<String> changeOldPassword(@RequestParam("emailId") String emailId,
-			@RequestParam("oldPassword") String oldPassword,@RequestParam("newPassword") String newPassword ){
+	@RequestMapping(value="/changePassword",method = RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HttpStatus> changeOldPassword(@RequestParam("userId") String userId,@RequestParam("oldPassword") String oldPassword,
+			@RequestParam("newPassword") String newPassword ){
 		try {
-			accountServices.changePassword(emailId, oldPassword, newPassword);
+			System.out.println("heyyyyy"+userId);
+			int id=Integer.parseInt(userId);
+			accountServices.changePassword(id, oldPassword,newPassword);
 		} catch (IncorrectPasswordException| UserDetailsNotFoundException e) {
 			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<>("Password changed successfully",HttpStatus.OK);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
-	
+	@RequestMapping(value="/sendRequest",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE,headers="Accept=application/json")
+	public ResponseEntity<HttpStatus> sendRequestAction(@RequestParam("userOneId") int userOneId, @RequestParam("userTwoId") int userTwoId){
+		boolean status=accountServices.saveFriendRequest(userOneId, userTwoId);
+		if(status==true)
+			return new ResponseEntity<>(HttpStatus.OK);
+		else
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	}
+ 
+	@RequestMapping(value="/updateRequest",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE,headers="Accept=application/json")
+	public ResponseEntity<HttpStatus> updateRequestAction(@RequestParam("userOneId") int userOneId, @RequestParam("userTwoId") int userTwoId,
+			@RequestParam("status")int status){
+		accountServices.updateFriendRequest(userOneId, userTwoId, status, userOneId);
+		return new ResponseEntity<HttpStatus>(HttpStatus.OK);
+	}
+ 
+	@RequestMapping(value="/getFriendList",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE,headers="Accept=application/json")
+	public ResponseEntity<List<Relationship>> getFriendListAction(@RequestParam("userOneId") int userOneId){
+		List<Relationship> friendList=accountServices.getFriendList(userOneId);
+		return new ResponseEntity<>(friendList,HttpStatus.OK);
+	}
 }
