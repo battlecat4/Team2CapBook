@@ -1,4 +1,4 @@
-package com.cg.project.beans;
+/*package com.cg.project.beans;
 
 import java.util.List;
 
@@ -85,3 +85,4 @@ public class Albums {
 	
 
 }
+*/

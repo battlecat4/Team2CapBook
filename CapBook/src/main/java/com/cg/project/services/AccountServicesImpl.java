@@ -3,8 +3,10 @@ package com.cg.project.services;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.status.StatusData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +20,14 @@ import com.cg.project.beans.Status;
 import com.cg.project.beans.User1;
 import com.cg.project.daoservices.PhotosDAO;
 import com.cg.project.daoservices.RelationshipDAO;
+import com.cg.project.daoservices.StatusDAO;
 import com.cg.project.daoservices.UserDAO;
 import com.cg.project.exceptions.IncorrectPasswordException;
+import com.cg.project.exceptions.IncorrectSecurityAnswerException;
 import com.cg.project.exceptions.PhotoNotFoundException;
 import com.cg.project.exceptions.PhotoStorageException;
 import com.cg.project.exceptions.RelationDetailsNotFoundException;
+import com.cg.project.exceptions.RelationshipExistsException;
 import com.cg.project.exceptions.UserDetailsNotFoundException;
 @Component("AccountServices")
 @Transactional
@@ -34,6 +39,9 @@ public class AccountServicesImpl implements AccountServices{
 	private PhotosDAO photosDAO;
 	@Autowired
 	private RelationshipDAO relationshipDAO;
+	@Autowired
+	private StatusDAO statusDAO;
+	
 //	@Autowired
 //	private MessageDAO messageDAO;
 	public static final String SALT = "my-salt-text";
@@ -58,8 +66,12 @@ public class AccountServicesImpl implements AccountServices{
 		if (hashedPassword.equals(user.getPassword())) 
 			return user;
 		else 
-			throw new IncorrectPasswordException("Incorrect Password");
-					
+			throw new IncorrectPasswordException("Incorrect Password");					
+	}
+
+	@Override
+	public List<User1> getAllAccountDetails() {
+		return (ArrayList<User1>)userDAO.findAll();
 	}
 
 	public static String generateHash(String input) {
@@ -80,25 +92,27 @@ public class AccountServicesImpl implements AccountServices{
 	}
 
 	@Override
-	public Photos storePhoto(MultipartFile photo) throws PhotoStorageException {
-		String photoName = StringUtils.cleanPath(photo.getOriginalFilename());
+	public Photos storePhoto(Photos photo) throws PhotoStorageException {
+		photosDAO.deleteAll();
+		String photoName = StringUtils.cleanPath(photo.getPhotoName());
 		try {
 			if(photoName.contains("..")) {
-				throw new PhotoStorageException("Sorry! Filename contains invalid path sequence " + photoName);
-			}
-			Photos photos = new Photos(photoName, photo.getContentType(), photo.getBytes());
-			return photosDAO.save(photos);
-		} catch (IOException ex) {
-			throw new PhotoStorageException("Could not store file. Please try again!");
+				throw new PhotoStorageException("Filename contains invalid path sequence " + photoName);
+			}			
+			photo=photosDAO.save(photo);
+			return photo;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new PhotoStorageException("Could not store file.");
 		}
 	}
 
 	@Override
-	public Photos getPhoto(String photoId) throws PhotoNotFoundException {
-		return photosDAO.findById(photoId).orElseThrow(() -> new PhotoNotFoundException("Photo not found with id " + photoId)) ;
+	public List<Photos> retrieveAllPhotos() throws PhotoStorageException {
+		return photosDAO.findAll();
 	}
 
-	public boolean changePassword(int userId,String oldPassword, String newPassword) throws UserDetailsNotFoundException, IncorrectPasswordException {
+	public boolean changePassword(String userId,String oldPassword, String newPassword) throws UserDetailsNotFoundException, IncorrectPasswordException {
 		User1 user= userDAO.findById(userId).orElseThrow(()->(new UserDetailsNotFoundException("User details not found")));
 		String saltedPassword = SALT +oldPassword;
 		String hashedPassword = generateHash(saltedPassword);
@@ -113,13 +127,19 @@ public class AccountServicesImpl implements AccountServices{
 			throw new IncorrectPasswordException("Incorrect password");		
 	} 
  
-	/*@Override
+	@Override
 	public User1 addStatus(String userId,String status) throws UserDetailsNotFoundException{
 		User1 user= userDAO.findById(userId).orElseThrow(()->(new UserDetailsNotFoundException("No such emailId found")));
-		//user.setStatus(new Status(status, user));
-		userDAO.save(user);
+		Status s=new Status(status, user);
+		statusDAO.save(s);
 		return user;
-	}*/
+	}
+	
+	@Override
+	public User1 getAccount(String userId) throws UserDetailsNotFoundException {
+		User1 user=userDAO.findById(userId).orElseThrow(()->new UserDetailsNotFoundException("User details not found"));
+		return user;
+	}
  
 	/*@Override
 	public User1 addPost(String postById,String postOnId, String post) throws UserDetailsNotFoundException {
@@ -130,65 +150,79 @@ public class AccountServicesImpl implements AccountServices{
 	}*/
  
 	@Override
-	public boolean saveFriendRequest(int userOneId, int userTwoId) {
-		Relationship relation;
-		try {
-			getRelation(userOneId, userTwoId);
-		} catch (RelationDetailsNotFoundException e) {
-			relation=new Relationship(userOneId, userTwoId, 0, userOneId);
-			relationshipDAO.save(relation);
-			return true;
+	public boolean saveFriendRequest(String userOneId, String userTwoId){
+		Relationship relation=relationshipDAO.findByIds(userOneId, userTwoId);
+		String temp=userOneId;
+		userOneId=userTwoId;
+		userTwoId=temp;
+		Relationship relation1=relationshipDAO.findByIds(userOneId,userTwoId);
+		if (relation==null) {
+			if (relation1==null) {
+				Relationship relation2=new Relationship(userTwoId,userOneId, 0, userTwoId);
+				Relationship relation3=relationshipDAO.save(relation2);
+				return true;	
+			}								
 		}
-		return false;
+		return false;		
 	}
+		
+	
  
 	@Override
-	public Relationship updateFriendRequest(int userOneId, int userTwoId, int status, int id) {
+	public Relationship updateFriendRequest(String userOneId, String userTwoId, int status, String id) {		
 		return relationshipDAO.updateStatus(userOneId, userTwoId, status, id);
 	}
  
-	@Override
-	public Relationship getRelation(int userOneId, int userTwoId) throws RelationDetailsNotFoundException {
-		Relationship relation = relationshipDAO.findByIds(userOneId, userTwoId);
-		if(relation!=null)
-			return relation;
-		else {
-			relation = relationshipDAO.findByIds(userTwoId, userOneId);
-			if(relation!=null)
-				return relation;
-			else
-				throw new RelationDetailsNotFoundException("No such relationship exists");
-		}
-	}
+	
  
 	@Override
-	public List<Relationship> getFriendList(int userOneId) {
-		List<Relationship> relations = relationshipDAO.findAllById(userOneId);		
+	public List<Relationship> getFriendList(String userOneId) {
+		List<Relationship> relations = relationshipDAO.findAllByEmailId(userOneId);
 		return relations;
 	}
 
 
 
 	@Override
-	public User1 getAccountDetailsUserId(int userId) throws UserDetailsNotFoundException, IncorrectPasswordException {
+	public User1 getAccountDetailsUserId(String userId) throws UserDetailsNotFoundException, IncorrectPasswordException {
 		return userDAO.findById(userId).get();
 	}
-
-
-
-	@Override
-	public User1 addStatus(String userId, String status) throws UserDetailsNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
 
 	@Override
 	public User1 addPost(String userId, String friendId, String post) throws UserDetailsNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+
+	@Override
+	public List<Status> getStatus() {
+		List<Status> statusList=new ArrayList<>();
+		statusList=statusDAO.findAll();
+		return statusList;
+	}
+	
+	@Override
+	public boolean forgotPassword(String emailId, String securityAnswer, String newPassword) throws UserDetailsNotFoundException, IncorrectSecurityAnswerException {
+				User1 user= userDAO.findByEmailId(emailId); 
+				if (user==null)
+					throw new UserDetailsNotFoundException("User details not found");
+				if(securityAnswer.equals(user.getSecurityAnswer())) {
+					String saltedPassword = SALT + newPassword;
+					String hashedPassword = generateHash(saltedPassword);
+					user.setPassword(hashedPassword);
+					userDAO.save(user);
+				}
+				else 
+					throw new IncorrectSecurityAnswerException("Please enter the correct answer");
+				return true;
+		}
+
+
+
+	
+
 
 
 
