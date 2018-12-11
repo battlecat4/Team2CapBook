@@ -19,6 +19,8 @@ public class Photos {
 	@Lob
 	private byte[] data;
 	
+	private String emailId;
+	
 	/*@ManyToOne
 	private Albums album;*/
 	public Photos() {
@@ -37,6 +39,15 @@ public class Photos {
 		this.photoName = photoName;
 		this.photoType = photoType;
 		this.data = data;
+	}
+	
+	
+		public Photos(String photoName, String photoType, byte[] data, String emailId) {
+		super();
+		this.photoName = photoName;
+		this.photoType = photoType;
+		this.data = data;
+		this.emailId = emailId;
 	}
 	public String getPhotoId() {
 		return photoId;
@@ -62,11 +73,18 @@ public class Photos {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
+	public String getEmailId() {
+		return emailId;
+	}
+	public void setEmailId(String emailId) {
+		this.emailId = emailId;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(data);
+		result = prime * result + ((emailId == null) ? 0 : emailId.hashCode());
 		result = prime * result + ((photoId == null) ? 0 : photoId.hashCode());
 		result = prime * result + ((photoName == null) ? 0 : photoName.hashCode());
 		result = prime * result + ((photoType == null) ? 0 : photoType.hashCode());
@@ -82,6 +100,11 @@ public class Photos {
 			return false;
 		Photos other = (Photos) obj;
 		if (!Arrays.equals(data, other.data))
+			return false;
+		if (emailId == null) {
+			if (other.emailId != null)
+				return false;
+		} else if (!emailId.equals(other.emailId))
 			return false;
 		if (photoId == null) {
 			if (other.photoId != null)
@@ -103,8 +126,13 @@ public class Photos {
 	@Override
 	public String toString() {
 		return "Photos [photoId=" + photoId + ", photoName=" + photoName + ", photoType=" + photoType + ", data="
-				+ Arrays.toString(data) + "]";
+				+ Arrays.toString(data) + ", emailId=" + emailId + "]";
 	}
+	
+	
+	
+	
+	
 	
 	/*public Albums getAlbum() {
 		return album;

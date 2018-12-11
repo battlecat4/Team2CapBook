@@ -10,6 +10,7 @@ public class Relationship {
 	private String userTwoId;
 	private int status;
 	private String userActionId;
+	
 	public Relationship() {
 		super();
 	}

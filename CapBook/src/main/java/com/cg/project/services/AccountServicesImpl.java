@@ -93,11 +93,14 @@ public class AccountServicesImpl implements AccountServices{
 
 	@Override
 	public Photos storePhoto(Photos photo) throws PhotoStorageException {
-		photosDAO.deleteAll();
+		Photos photo1=photosDAO.findByEmailId(photo.getEmailId());
+		if(photo1!=null) {
+			photosDAO.deleteById(photo1.getPhotoId());
+		}
 		String photoName = StringUtils.cleanPath(photo.getPhotoName());
 		try {
 			if(photoName.contains("..")) {
-				throw new PhotoStorageException("Filename contains invalid path sequence " + photoName);
+				throw new PhotoStorageException("Filename contains invalid path sequence ");
 			}			
 			photo=photosDAO.save(photo);
 			return photo;
@@ -108,8 +111,8 @@ public class AccountServicesImpl implements AccountServices{
 	}
 
 	@Override
-	public List<Photos> retrieveAllPhotos() throws PhotoStorageException {
-		return photosDAO.findAll();
+	public Photos retrieveAllPhotos(String emailId){
+		return photosDAO.findByEmailId(emailId);
 	}
 
 	public boolean changePassword(String userId,String oldPassword, String newPassword) throws UserDetailsNotFoundException, IncorrectPasswordException {
@@ -169,15 +172,27 @@ public class AccountServicesImpl implements AccountServices{
 	
  
 	@Override
-	public Relationship updateFriendRequest(String userOneId, String userTwoId, int status, String id) {		
-		return relationshipDAO.updateStatus(userOneId, userTwoId, status, id);
+	public Relationship updateFriendRequest(String userOneId, String userTwoId, int status, String id) {			
+		Relationship relation=new Relationship(userOneId, userTwoId, status, id);
+		Relationship relation1=relationshipDAO.save(relation);
+		if(status==2) {
+			relationshipDAO.delete(relation1);
+			return null;
+		}			
+		return relation1;
 	}
  
 	
  
 	@Override
-	public List<Relationship> getFriendList(String userOneId) {
-		List<Relationship> relations = relationshipDAO.findAllByEmailId(userOneId);
+	public List<Relationship> getFriendList(String userId) {
+		List<Relationship> relations = relationshipDAO.findFriends(userId,1);
+		return relations;
+	}
+	
+	@Override
+	public List<Relationship> getFriendRequestList(String userTwoId) {
+		List<Relationship> relations = relationshipDAO.findAllByEmailId(userTwoId);
 		return relations;
 	}
 

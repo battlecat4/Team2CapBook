@@ -33,7 +33,7 @@ public interface AccountServices {
 	List<Relationship> getFriendList(String userOneId);
 	User1 getAccount(String userId) throws UserDetailsNotFoundException;
 	List<User1> getAllAccountDetails();
-	
+	List<Relationship> getFriendRequestList(String userTwoId);
 	boolean forgotPassword(String emailId, String securityAnswer, String newPassword) throws UserDetailsNotFoundException, IncorrectSecurityAnswerException;
-	List<Photos> retrieveAllPhotos() throws PhotoStorageException;
+	Photos retrieveAllPhotos(String emailId);
 }

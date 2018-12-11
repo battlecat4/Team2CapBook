@@ -47,14 +47,14 @@ public class AccountServicesController {
 
 	@RequestMapping(value="/openAccount",method=RequestMethod.POST,
 			consumes=MediaType.APPLICATION_JSON_VALUE,headers="Accept=application/json")
-	public ResponseEntity<User1> acceptProductDetails(@RequestBody User1 user){
+	public ResponseEntity<User1> acceptUserDetails(@RequestBody User1 user){
 		user=accountServices.openAccount(user);
 		return new ResponseEntity<>(user,HttpStatus.OK);
 	}
 
 	@RequestMapping(method=RequestMethod.GET,value="/getUserDetails",produces=MediaType.APPLICATION_JSON_VALUE,
 			headers="Accept=application/json")
-	public ResponseEntity<User1> getProductDetails(@RequestParam("emailId") String emailId,
+	public ResponseEntity<User1> getUserDetails(@RequestParam("emailId") String emailId,
 			@RequestParam("password") String password){
 		User1 user = null;
 		//HashMap<String, Object> model=new HashMap<String,Object>();
@@ -87,10 +87,10 @@ public class AccountServicesController {
 	
 	
 	
-	@PostMapping("/upload")
-    public String uploadMultipartFile(@RequestParam("file") MultipartFile photo) { //@RequestParam("emailID") String emailID) {
+	@PostMapping("/uploadphoto")
+    public String uploadMultipartFile(@RequestParam("file") MultipartFile photo,@RequestParam("emailId") String emailId) {
     	try {
-    		Photos photos = new Photos(photo.getOriginalFilename(), photo.getContentType(), photo.getBytes());
+    		Photos photos = new Photos(photo.getOriginalFilename(), photo.getContentType(), photo.getBytes(),emailId);
     		accountServices.storePhoto(photos);
 //       		 byte[] bytes = photo.getBytes();
 //             Path path = Paths.get(UPLOADED_FOLDER + photo.getOriginalFilename());
@@ -102,15 +102,13 @@ public class AccountServicesController {
 		}   
     }
 	
-	@RequestMapping(value="/retrieve")
-	public ResponseEntity<Photos> getAllPhotos(){
-		try {
-			List<Photos> photosList=accountServices.retrieveAllPhotos();
-		Photos pic = photosList.get(0); 
+	@RequestMapping(value="/retrievephoto",method = RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Photos> getPhoto(@RequestParam("emailId") String emailId){	
+			Photos pic=accountServices.retrieveAllPhotos(emailId);			
+			if (pic==null)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
 			return new ResponseEntity<> (pic, HttpStatus.OK);
-		} catch (PhotoStorageException e) {
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);	
-		}
 	}
 
 	@RequestMapping(value="/changePassword",method = RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
@@ -137,20 +135,37 @@ public class AccountServicesController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);				
 	}
  
-	@RequestMapping(value="/updateRequest",method=RequestMethod.GET,consumes=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<HttpStatus> updateRequestAction(@RequestParam("userOneId") String userOneId, @RequestParam("userTwoId") String userTwoId,
-			@RequestParam("status")String status){
+	@RequestMapping(value="/updateRequest",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HttpStatus> updateRequestAction(@RequestParam("userOneId") String userOneId, @RequestParam("userTwoId") String userTwoId,@RequestParam("status") String status){
+		
 		int s=Integer.parseInt(status);
-		accountServices.updateFriendRequest(userOneId, userTwoId, s, userOneId);
+		accountServices.updateFriendRequest(userOneId, userTwoId, s, userTwoId);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
  
-	/*@RequestMapping(value="/getFriendList",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE,headers="Accept=application/json")
-	public ResponseEntity<List<Relationship>> getFriendListAction(@RequestParam("userOneId") String userOneId){
-		List<Relationship> friendList=accountServices.getFriendList(userOneId);
-		return new ResponseEntity<>(friendList,HttpStatus.OK);
-	}*/
+	@RequestMapping(value="/getFriendList",method = RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<User1>> getFriendListAction(@RequestParam("userId") String userId){
+		List<Relationship> friendList=accountServices.getFriendList(userId);
+		List<User1> friends=new ArrayList<>();
+		User1 user=null;
+		try {
+			for (Relationship relationship : friendList) {
+				if(relationship.getUserOneId().equals(userId)) {									
+					user=accountServices.getAccount(relationship.getUserTwoId());
+					friends.add(user);									
+				}
+				else {
+					user=accountServices.getAccount(relationship.getUserOneId());
+					friends.add(user);
+				}					
+			}					
+		} catch (UserDetailsNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(friends,HttpStatus.OK);
+	}
 	
 	@RequestMapping(value="/status",method = RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HttpStatus> postStatusAction(@RequestParam("userId") String userId,@RequestParam("status") String status){
@@ -172,19 +187,21 @@ public class AccountServicesController {
 			if(str.getUser().getEmailId().equals(userId))
 				statusList.add(str);
 		}
+		if (statusList==null)
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		return new ResponseEntity<>(statusList,HttpStatus.OK);		
 	}	
 	
 	@RequestMapping(value="/getRequestList",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<User1>> getRequestListAction(@RequestParam("userOneId") String userOneId){
-		List<Relationship> list=accountServices.getFriendList(userOneId);
+	public ResponseEntity<List<User1>> getRequestListAction(@RequestParam("userTwoId") String userTwoId){
+		List<Relationship> list=accountServices.getFriendRequestList(userTwoId);
 		List<User1>requestList=new ArrayList<>();
 		for (Relationship relationship : list) {
 			if(relationship.getStatus()==0)
 				try {
-					requestList.add(accountServices.getAccount(userOneId));
+					requestList.add(accountServices.getAccount(relationship.getUserOneId()));
 				} catch (UserDetailsNotFoundException e) {
-					e.printStackTrace();
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 				}
 		}
 		return new ResponseEntity<>(requestList,HttpStatus.OK);

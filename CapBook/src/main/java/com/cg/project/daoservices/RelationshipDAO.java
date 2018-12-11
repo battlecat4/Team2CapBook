@@ -16,7 +16,10 @@ public interface RelationshipDAO extends JpaRepository<Relationship, String>{
 	@Query(value="UPDATE Relationship r SET r.status=:status AND r.user_action_id=:id WHERE r.user_one_id=:userOneId AND r.user_two_id=:userTwoId",nativeQuery = true)
 	Relationship updateStatus(@Param("userOneId") String userOneId,@Param("userTwoId") String userTwoId,@Param("status") int status,@Param("id") String id);
 	
-	@Query(value="SELECT * from Relationship r WHERE r.user_one_id=:userOneId",nativeQuery = true)
-	List<Relationship> findAllByEmailId(@Param("userOneId") String userOneId);
+	@Query(value="SELECT * from Relationship r WHERE r.user_two_id=:userTwoId",nativeQuery = true)
+	List<Relationship> findAllByEmailId(@Param("userTwoId") String userTwoId);
+	
+	@Query(value="SELECT * from Relationship r WHERE r.user_one_id=:userId OR r.user_two_id=:userId AND r.status=:status",nativeQuery = true)
+	List<Relationship> findFriends(@Param("userId") String userId,@Param("status") int status);
 	
 }
